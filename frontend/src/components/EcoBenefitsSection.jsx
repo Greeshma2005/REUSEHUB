@@ -39,8 +39,6 @@ const EcoBenefitsSection = () => {
           </div>
         </div>
       </div>
-
-      {/* Testimonials Section */}
       <div className="max-w-7xl mx-auto text-center">
         <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-black mb-12 leading-snug text-center">
             Connect with a community of <span className="text-green-700">eco-conscious</span> users

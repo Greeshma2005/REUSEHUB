@@ -35,8 +35,6 @@ const Footer = () => {
             Building a sustainable and supportive community through reusing and sharing.
           </p>
         </div>
-
-        {/* Navigation Links */}
         <div>
           <h4 className="text-green-900 font-semibold mb-3">Quick Links</h4>
           <ul className="space-y-2 text-sm">
@@ -56,8 +54,22 @@ const Footer = () => {
                 About Us
               </button>
             </li>
-            <li><a href="#" className="hover:text-green-700">Services</a></li>
-            <li><a href="#" className="hover:text-green-700">Contact</a></li>
+            <li>
+              <button
+                onClick={() => handleNavClick('/services')}
+                className="hover:text-green-700 text-left text-green-900"
+              >
+                Services
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleNavClick('/contact')}
+                className="hover:text-green-700 text-left text-green-900"
+              >
+                Contact
+              </button>
+            </li>
           </ul>
         </div>
         <div>

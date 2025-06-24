@@ -20,13 +20,13 @@ const Navbar = () => {
     const isSamePage = location.pathname === targetPath;
 
     if (isSamePage) {
-      scrollToTop(true); // smooth scroll if already on the page
+      scrollToTop(true);
     } else {
       navigate(targetPath);
-      setTimeout(() => scrollToTop(false), 10); // instant jump after routing
+      setTimeout(() => scrollToTop(false), 10);
     }
 
-    setMenuOpen(false); // close mobile menu if open
+    setMenuOpen(false);
   };
 
   const handleLogoClick = () => {
@@ -41,8 +41,6 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-sm shadow-sm z-50">
       <div className="w-full px-4 sm:px-6 lg:px-10 py-3 flex items-center justify-between">
-        
-        {/* Logo + Name (always go to home, instant scroll) */}
         <div
           onClick={handleLogoClick}
           className="flex items-center space-x-2 cursor-pointer"
@@ -50,16 +48,12 @@ const Navbar = () => {
           <img src={RecycleLogo} alt="Recycle Logo" className="h-8 w-8" />
           <span className="text-lg font-semibold text-black">ReuseHub</span>
         </div>
-
-        {/* Desktop Navigation */}
         <div className="hidden md:flex flex-grow justify-center space-x-16 text-sm font-medium text-black">
           <button onClick={() => handleNavClick('/')} className="hover:text-green-600">Home</button>
           <button onClick={() => handleNavClick('/about')} className="hover:text-green-600">About Us</button>
-          <a href="#" className="hover:text-green-600">Service</a>
-          <a href="#" className="hover:text-green-600">Contact</a>
+          <button onClick={() => handleNavClick('/services')} className="hover:text-green-600">Services</button>
+          <button onClick={() => handleNavClick('/contact')} className="hover:text-green-600">Contact</button>
         </div>
-
-        {/* Desktop Buttons */}
         <div className="hidden md:flex space-x-3">
           <button className="px-5 py-2 text-sm font-medium rounded-full bg-white text-green-700 border border-green-600 hover:bg-green-50 hover:shadow-md transform hover:scale-105 transition duration-200">
             Log in
@@ -68,16 +62,12 @@ const Navbar = () => {
             Get started
           </button>
         </div>
-
-        {/* Hamburger Menu (Mobile) */}
         <div className="md:hidden">
           <button onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
-
-      {/* Mobile Dropdown Menu */}
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 shadow-md px-4 py-4 space-y-4 transition-all duration-300">
           <button
@@ -92,11 +82,21 @@ const Navbar = () => {
           >
             About Us
           </button>
-          <a href="#" className="block text-sm font-medium text-black hover:text-green-600">Service</a>
-          <a href="#" className="block text-sm font-medium text-black hover:text-green-600">Contact</a>
-          
+          <button
+            onClick={() => handleNavClick('/services')}
+            className="block w-full text-left text-sm font-medium text-black hover:text-green-600"
+          >
+            Services
+          </button>
+          <button
+            onClick={() => handleNavClick('/contact')}
+            className="block w-full text-left text-sm font-medium text-black hover:text-green-600"
+          >
+            Contact
+          </button>
+
           <hr className="my-2" />
-          
+
           <button className="w-full px-4 py-2 text-sm font-medium bg-white text-green-700 border border-green-600 rounded-full hover:bg-green-50 hover:shadow-md transform hover:scale-105 transition duration-200">
             Log in
           </button>

@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Background from '../assets/Background.jpeg';
 
 const Hero = () => {
+  const navigate = useNavigate();
+
   return (
     <section
       className="relative h-screen bg-cover bg-center"
@@ -16,10 +19,16 @@ const Hero = () => {
           ReuseHub lets you donate or request items — building a sustainable and supportive community.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
-          <button className="px-6 py-3 font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white">
+          <button
+            onClick={() => navigate('/donate')}
+            className="px-6 py-3 font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white"
+          >
             Donate
           </button>
-          <button className="px-6 py-3 font-medium rounded-lg border border-white text-white hover:bg-white hover:text-black transition">
+          <button
+            onClick={() => navigate('/request')}
+            className="px-6 py-3 font-medium rounded-lg border border-white text-white hover:bg-white hover:text-black transition"
+          >
             Request
           </button>
         </div>
