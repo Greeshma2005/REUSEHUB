@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const DonatePage = () => {
@@ -12,10 +12,33 @@ const DonatePage = () => {
     address: '',
     description: '',
     images: [],
+    latitude: '',
+    longitude: '',
   });
 
   const [previewUrls, setPreviewUrls] = useState([]);
   const [showFullImage, setShowFullImage] = useState({ visible: false, index: 0 });
+  const [locationError, setLocationError] = useState('');
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData((prev) => ({
+            ...prev,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          }));
+          setLocationError('');
+        },
+        (error) => {
+          console.error('Geolocation error:', error.message);
+          setLocationError('Location access is required to submit the donation.');
+        }
+      );
+    } else {
+      setLocationError('Geolocation is not supported by your browser.');
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -52,24 +75,26 @@ const DonatePage = () => {
       setFormData((p) => ({ ...p, images: [...p.images, ...nonDuplicateFiles] }));
       const newPreviews = nonDuplicateFiles.map((file) => URL.createObjectURL(file));
       setPreviewUrls((prev) => [...prev, ...newPreviews]);
-
     } else {
       setFormData((p) => ({ ...p, [name]: value }));
     }
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (formData.images.length === 0) {
-      alert('Please upload at least 1 image.');
+    if (!formData.latitude || !formData.longitude) {
+      alert('Please allow location access to submit the donation.');
       return;
     }
-
+    if (!formData.itemName.trim()) return alert('Please enter item name.');
+    if (!formData.category) return alert('Please select a category.');
+    if (formData.category === 'Others' && !formData.customCategory.trim())
+      return alert('Please specify a custom category.');
+    if (!formData.location.trim()) return alert('Please enter the state.');
+    if (!formData.address.trim()) return alert('Please enter the address.');
+    if (!formData.description.trim()) return alert('Please enter a description.');
+    if (formData.images.length === 0) return alert('Please upload at least 1 image.');
     const categoryToSend =
-      formData.category === 'Others'
-        ? formData.customCategory
-        : formData.category;
+      formData.category === 'Others' ? formData.customCategory : formData.category;
 
     const data = new FormData();
     data.append('itemName', formData.itemName);
@@ -77,13 +102,18 @@ const DonatePage = () => {
     data.append('location', formData.location);
     data.append('address', formData.address);
     data.append('description', formData.description);
+    data.append('latitude', formData.latitude);
+    data.append('longitude', formData.longitude);
     formData.images.forEach((img) => data.append('images', img));
 
     fetch('http://localhost:5000/api/donations', {
       method: 'POST',
       body: data,
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to save');
+        return res.json();
+      })
       .then(() => {
         setFormData({
           itemName: '',
@@ -93,20 +123,26 @@ const DonatePage = () => {
           address: '',
           description: '',
           images: [],
+          latitude: '',
+          longitude: '',
         });
         setPreviewUrls([]);
         setShowFullImage({ visible: false, index: 0 });
-
-        // Navigate to thank-you page
         navigate('/donation-success');
       })
-      .catch(() => alert('Something went wrong!'));
+      .catch(() => alert('Failed to save data. Please try again.'));
   };
 
   return (
-    <div className="min-h-screen bg-green-50 py-16 px-4 sm:px-10">
+    <div className="min-h-screen bg-green-50 pt-28 pb-16 px-4 sm:px-10">
       <div className="max-w-xl mx-auto bg-white shadow-lg rounded-xl p-8 space-y-8">
         <h2 className="text-3xl font-bold text-green-800 text-center">Donate an Item</h2>
+
+        {locationError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm">
+            {locationError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -115,18 +151,15 @@ const DonatePage = () => {
               name="itemName"
               value={formData.itemName}
               onChange={handleChange}
-              required
               className="w-full border rounded px-4 py-2 text-sm"
             />
           </div>
-
           <div>
             <label className="block mb-1 text-green-700 font-medium">Category</label>
             <select
               name="category"
               value={formData.category}
               onChange={handleChange}
-              required
               className="w-full border rounded px-4 py-2 text-sm"
             >
               <option value="">Select a category</option>
@@ -137,7 +170,6 @@ const DonatePage = () => {
               <option value="Others">Others</option>
             </select>
           </div>
-
           {formData.category === 'Others' && (
             <div>
               <label className="block mb-1 text-green-700 font-medium">Specify Category</label>
@@ -145,48 +177,40 @@ const DonatePage = () => {
                 name="customCategory"
                 value={formData.customCategory}
                 onChange={handleChange}
-                required
                 className="w-full border rounded px-4 py-2 text-sm"
               />
             </div>
           )}
-
           <div>
-            <label className="block mb-1 text-green-700 font-medium">Location</label>
+            <label className="block mb-1 text-green-700 font-medium">State</label>
             <input
               name="location"
               value={formData.location}
               onChange={handleChange}
-              required
               className="w-full border rounded px-4 py-2 text-sm"
             />
           </div>
-
           <div>
             <label className="block mb-1 text-green-700 font-medium">Address</label>
             <textarea
               name="address"
               value={formData.address}
               onChange={handleChange}
-              required
               rows="3"
               className="w-full border rounded px-4 py-2 text-sm"
             ></textarea>
           </div>
-
           <div>
             <label className="block mb-1 text-green-700 font-medium">Description</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
-              required
               rows="3"
               placeholder="Like-new condition, gently used, etc."
               className="w-full border rounded px-4 py-2 text-sm"
             ></textarea>
           </div>
-
           <div>
             <label className="block mb-1 text-green-700 font-medium">Upload 1–3 Photos</label>
             <input
@@ -197,7 +221,6 @@ const DonatePage = () => {
               multiple
               className="w-full border rounded px-3 py-2 text-sm bg-white"
             />
-
             {previewUrls.length > 0 && (
               <div className="flex flex-wrap gap-3 mt-3">
                 {previewUrls.map((url, index) => (
@@ -230,7 +253,6 @@ const DonatePage = () => {
               </div>
             )}
           </div>
-
           <button
             type="submit"
             className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
@@ -240,7 +262,7 @@ const DonatePage = () => {
         </form>
       </div>
 
-      {/* Fullscreen Image Modal */}
+      {/* Full Image View */}
       {showFullImage.visible && previewUrls[showFullImage.index] && (
         <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center">
           <div className="relative">

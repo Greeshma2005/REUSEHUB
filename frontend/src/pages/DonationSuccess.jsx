@@ -1,5 +1,5 @@
 import React from 'react';
-import donateImage from '../assets/donate.png'; // Adjust path if different
+import donateImage from '../assets/donate.png'; 
 import { useNavigate } from 'react-router-dom';
 
 const DonationSuccess = () => {

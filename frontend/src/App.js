@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
+import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
@@ -13,6 +13,11 @@ import Services from './pages/Services';
 import Profile from './pages/Profile';
 import DonatePage from './pages/Donate';
 import DonationSuccess from './pages/DonationSuccess';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import ForgotPassword from './pages/ForgotPassword';
+import RequestPage from './pages/RequestPage';
+import RequestItemDetails from './pages/RequestItemDetails';
 const Home = () => (
   <>
     <Hero />
@@ -30,6 +35,7 @@ const AboutPage = () => (
 
 function App() {
   return (
+    <AuthProvider>
     <Router>
       <Navbar />
       <Routes>
@@ -40,9 +46,15 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/donate" element={<DonatePage />} />
         <Route path="/donation-success" element={<DonationSuccess />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/request" element={<RequestPage />} />
+        <Route path="/request/:id" element={<RequestItemDetails />} />
       </Routes>
       <Footer />
     </Router>
+    </AuthProvider>
   );
 }
 
