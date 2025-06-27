@@ -8,6 +8,7 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '', 
     password: '',
     confirmPassword: '',
   });
@@ -29,18 +30,14 @@ const Signup = () => {
     return '';
   };
 
-  const validateEmail = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [name]: value }));
 
     if (name === 'password') {
-      const validationMsg = validatePassword(value);
-      setPasswordError(validationMsg);
+      setPasswordError(validatePassword(value));
     }
 
     if (name === 'email') {
@@ -53,19 +50,12 @@ const Signup = () => {
     setError('');
 
     const pwdCheck = validatePassword(formData.password);
-    if (pwdCheck) {
-      setPasswordError(pwdCheck);
-      return;
-    }
+    if (pwdCheck) return setPasswordError(pwdCheck);
 
-    if (!validateEmail(formData.email)) {
-      setEmailError('Please enter a valid email address.');
-      return;
-    }
+    if (!validateEmail(formData.email)) return setEmailError('Please enter a valid email address.');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match.');
-      return;
+      return setError('Passwords do not match.');
     }
 
     try {
@@ -75,6 +65,7 @@ const Signup = () => {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
+          phone: formData.phone, 
           password: formData.password,
         }),
       });
@@ -84,14 +75,10 @@ const Signup = () => {
       if (!res.ok || data.error) {
         setError(data.message || 'Signup failed. Please try again.');
       } else {
-        setFormData({
-          name: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-        });
+        setFormData({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
         setError('');
-        navigate('/');
+        alert('Signup successful!');
+        navigate('/login');
       }
     } catch (err) {
       setError('Something went wrong. Please try again later.');
@@ -112,7 +99,8 @@ const Signup = () => {
               required
               value={formData.name}
               onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+              className="w-full mt-1 px-4 py-2 border rounded text-sm"
+              placeholder="Enter your name"
             />
           </div>
           <div>
@@ -123,11 +111,22 @@ const Signup = () => {
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+              className="w-full mt-1 px-4 py-2 border rounded text-sm"
+              placeholder="Enter email address"
             />
-            {emailError && (
-              <p className="text-xs text-red-600 mt-1">{emailError}</p>
-            )}
+            {emailError && <p className="text-xs text-red-600 mt-1">{emailError}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-green-800">Phone</label>
+            <input
+              type="text"
+              name="phone"
+              required
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full mt-1 px-4 py-2 border rounded text-sm"
+              placeholder="Enter phone number"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-green-800">Password</label>
@@ -137,11 +136,10 @@ const Signup = () => {
               required
               value={formData.password}
               onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+              className="w-full mt-1 px-4 py-2 border rounded text-sm"
+              placeholder="Enter password"
             />
-            {passwordError && (
-              <p className="text-xs text-red-600 mt-1">{passwordError}</p>
-            )}
+            {passwordError && <p className="text-xs text-red-600 mt-1">{passwordError}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-green-800">Confirm Password</label>
@@ -152,7 +150,8 @@ const Signup = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full mt-1 px-4 py-2 border rounded pr-10 focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+                className="w-full mt-1 px-4 py-2 border rounded pr-10 text-sm"
+                placeholder="Confirm password"
               />
               <button
                 type="button"
@@ -163,20 +162,18 @@ const Signup = () => {
               </button>
             </div>
           </div>
+
           <button
             type="submit"
             disabled={!!passwordError || !!emailError}
-            className="w-full py-2 bg-green-600 text-white font-medium rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
           >
             Sign Up
           </button>
         </form>
         <p className="text-sm text-center text-gray-700">
           Already have an account?{' '}
-          <span
-            onClick={() => navigate('/login')}
-            className="text-green-700 hover:underline cursor-pointer"
-          >
+          <span onClick={() => navigate('/login')} className="text-green-700 hover:underline cursor-pointer">
             Log in
           </span>
         </p>

@@ -16,6 +16,7 @@ import DonationSuccess from './pages/DonationSuccess';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import RequestPage from './pages/RequestPage';
 import RequestItemDetails from './pages/RequestItemDetails';
 const Home = () => (
@@ -49,6 +50,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/request" element={<RequestPage />} />
         <Route path="/request/:id" element={<RequestItemDetails />} />
       </Routes>

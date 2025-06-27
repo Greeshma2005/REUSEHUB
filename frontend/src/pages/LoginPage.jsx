@@ -40,30 +40,40 @@ const LoginPage = () => {
     setErrors((prev) => ({ ...prev, [e.target.name]: '' }));
   };
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+const handleLogin = async (e) => {
+  e.preventDefault();
+  if (!validate()) return;
 
-    if (!validate()) return;
+  try {
+    const res = await fetch('http://localhost:5000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
 
-    const users = JSON.parse(localStorage.getItem('reusehubUsers')) || [];
-    const user = users.find((u) => u.email === formData.email);
+    const data = await res.json();
 
-    if (!user) {
-      alert('No account found with this email. Please sign up first.');
-      navigate('/signup');
-      return;
+    // ✅ Based on status code
+    if (res.status === 404) {
+      alert('User not found. Please sign up first.');
+    } else if (res.status === 401) {
+      alert('Incorrect email or password.');
+    } else if (!res.ok) {
+      alert(data.message || 'Login failed');
+    } else {
+      localStorage.setItem('reusehubLoggedInUser', JSON.stringify(data.user));
+      setIsLoggedIn(true);
+      alert('Login successful!');
+      navigate('/');
     }
+  } catch (err) {
+    alert('Something went wrong. Please try again.');
+  }
+};
 
-    if (user.password !== formData.password) {
-      alert('Incorrect password');
-      return;
-    }
 
-    alert('Login successful!');
-    localStorage.setItem('reusehubLoggedInUser', JSON.stringify(user));
-    setIsLoggedIn(true);
-    navigate('/profile');
-  };
+
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-green-50 px-4">

@@ -4,20 +4,32 @@ import { useNavigate } from 'react-router-dom';
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
+    setError('');
 
-    const users = JSON.parse(localStorage.getItem('reusehubUsers')) || [];
-    const userExists = users.some((u) => u.email === email);
+    try {
+      const res = await fetch('http://localhost:5000/api/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-    if (!userExists) {
-      alert('No account found with this email.');
-      return;
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Failed to send reset link');
+      } else {
+        setMessage(data.message);
+        setTimeout(() => navigate('/login'), 3000); 
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again later.');
     }
-
-    alert('Reset link sent to your email (mocked).');
-    navigate('/login');
   };
 
   return (
@@ -31,7 +43,7 @@ const ForgotPassword = () => {
             value={email}
             required
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
+            placeholder="Enter your registered email"
             className="w-full border rounded px-4 py-2 text-sm"
           />
 
@@ -42,6 +54,9 @@ const ForgotPassword = () => {
             Send Reset Link
           </button>
         </form>
+
+        {message && <p className="mt-4 text-green-700 text-sm text-center">{message}</p>}
+        {error && <p className="mt-4 text-red-600 text-sm text-center">{error}</p>}
       </div>
     </div>
   );
