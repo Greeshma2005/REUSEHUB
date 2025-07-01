@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/img-redundant-alt */
 import React, { useState, useEffect } from 'react';
 
 const Profile = () => {
@@ -6,23 +7,44 @@ const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+  const [viewItem, setViewItem] = useState(null);
+  const [imageIndex, setImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const user = {
-        name: 'Greeshma Sri',
-        email: 'greeshma@example.com',
-        phone: '+91 98765 43210',
-        donations: [],
-        requests: [],
-      };
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login';
+        return;
+      }
 
-      setUserData(user);
-      setFormData({
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-      });
+      try {
+        const res = await fetch('http://localhost:5000/api/donations/my-donations', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch user donations');
+        const donations = await res.json();
+        const user = JSON.parse(localStorage.getItem('reusehubLoggedInUser'));
+
+        setUserData({
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          donations,
+          requests: [],
+        });
+
+        setFormData({
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+        });
+      } catch (err) {
+        alert('Error fetching profile data');
+      }
     };
 
     fetchUserData();
@@ -53,45 +75,89 @@ const Profile = () => {
   };
 
   const handleLogoutConfirm = () => {
-    localStorage.removeItem('authToken');
-    setUserData(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('reusehubLoggedInUser');
     window.location.href = '/';
+  };
+
+  const handleViewItem = (item) => {
+    setViewItem(item);
+    setImageIndex(0);
+  };
+
+  const handleDeleteItem = async (donationId) => {
+    if (!window.confirm('Are you sure you want to delete this donation?')) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:5000/api/donations/${donationId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error('Failed to delete');
+      setUserData((prev) => ({
+        ...prev,
+        donations: prev.donations.filter((d) => d._id !== donationId),
+      }));
+
+      alert('Donation deleted successfully!');
+    } catch (err) {
+      alert('Error deleting donation.');
+    }
   };
 
   const renderItems = (items) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-      {items.map((item, idx) => (
+      {items.map((item) => (
         <div
-          key={idx}
-          className="bg-white border border-green-100 rounded-xl shadow-sm p-4 flex items-center gap-4 hover:shadow-md transition"
+          key={item._id}
+          className="bg-white border border-green-100 rounded-xl shadow-sm p-4 flex flex-col gap-3 hover:shadow-md transition"
         >
           <img
-            src={item.image || 'https://via.placeholder.com/60?text=Item'}
-            alt={item.item}
-            className="w-14 h-14 rounded object-cover"
+            src={
+              item.images && item.images.length > 0
+                ? `http://localhost:5000/uploads/${item.images[0]}`
+                : 'https://via.placeholder.com/60?text=Item'
+            }
+            alt={item.itemName}
+            className="w-full h-40 object-cover rounded"
           />
           <div>
-            <p className="font-medium text-green-900">{item.item}</p>
-            <p className="text-sm text-gray-500">{item.date}</p>
+            <p className="font-semibold text-green-900">{item.itemName}</p>
+            <p className="text-sm text-gray-500">{item.category}</p>
+            <p className="text-xs text-gray-400">Posted on: {new Date(item.createdAt).toLocaleDateString()}</p>
+          </div>
+          <div className="flex justify-between mt-2">
+            <button
+              className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs hover:bg-green-200"
+              onClick={() => handleViewItem(item)}
+            >
+              View
+            </button>
+            <button
+              className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs hover:bg-red-200"
+              onClick={() => handleDeleteItem(item._id)}
+            >
+              Delete
+            </button>
           </div>
         </div>
       ))}
     </div>
   );
 
-  if (!userData) {
-    return <div className="text-center py-20">Loading...</div>;
-  }
+  if (!userData) return <div className="text-center py-20">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-green-50 pt-28 pb-12 px-4 sm:px-8">
       <div className="max-w-6xl mx-auto bg-white shadow-md rounded-2xl overflow-hidden flex flex-col lg:flex-row">
+        {/* Left: Profile Info */}
         <div className="w-full lg:w-1/3 bg-green-100 p-6 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="w-24 h-24 rounded-full bg-green-300 flex items-center justify-center text-white text-2xl font-bold mx-auto">
               {userData.name[0]}
             </div>
-
             <div className="text-center">
               {['name', 'email', 'phone'].map((field) => (
                 <div key={field} className="mb-3">
@@ -113,7 +179,6 @@ const Profile = () => {
               ))}
             </div>
           </div>
-
           <div className="mt-8 flex flex-col items-center gap-4">
             {editMode ? (
               <button
@@ -130,7 +195,6 @@ const Profile = () => {
                 Edit Profile
               </button>
             )}
-
             <button
               onClick={() => setShowLogoutPopup(true)}
               className="w-full bg-red-100 text-red-600 border border-red-400 py-2 px-4 rounded-full hover:bg-red-200 transition"
@@ -139,11 +203,10 @@ const Profile = () => {
             </button>
           </div>
         </div>
-        <div className="w-full lg:w-2/3 p-8">
-          <h2 className="text-2xl font-bold text-green-800 mb-6 text-center">
-            My Activity
-          </h2>
 
+        {/* Right: Donations/Requests */}
+        <div className="w-full lg:w-2/3 p-8">
+          <h2 className="text-2xl font-bold text-green-800 mb-6 text-center">My Activity</h2>
           <div className="flex gap-4 mb-6 justify-center">
             {['donations', 'requests'].map((tab) => (
               <button
@@ -174,12 +237,12 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Logout Popup */}
       {showLogoutPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
-            <p className="text-lg font-semibold text-gray-800 mb-4">
-              Are you sure you want to log out?
-            </p>
+            <p className="text-lg font-semibold text-gray-800 mb-4">Are you sure you want to log out?</p>
             <div className="flex justify-center gap-4">
               <button
                 onClick={handleLogoutConfirm}
@@ -194,6 +257,62 @@ const Profile = () => {
                 No
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Popup with Image Slider */}
+      {viewItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center">
+          <div className="bg-white rounded-xl p-6 max-w-lg w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl"
+              onClick={() => setViewItem(null)}
+            >
+              ×
+            </button>
+            <h2 className="text-xl font-semibold text-green-800 mb-3">{viewItem.itemName}</h2>
+            {viewItem.images?.length > 0 && (
+              <div className="relative mb-4">
+                <img
+                  src={`http://localhost:5000/uploads/${viewItem.images[imageIndex]}`}
+                  alt={`Image ${imageIndex + 1}`}
+                  className="max-h-[75vh] w-auto max-w-full mx-auto object-contain rounded"
+                />
+
+                {viewItem.images.length > 1 && (
+                  <>
+                    <button
+                      className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-70 px-2 py-1 rounded-full"
+                      onClick={() =>
+                        setImageIndex((prev) =>
+                          prev === 0 ? viewItem.images.length - 1 : prev - 1
+                        )
+                      }
+                    >
+                      ◀
+                    </button>
+                    <button
+                      className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-70 px-2 py-1 rounded-full"
+                      onClick={() =>
+                        setImageIndex((prev) =>
+                          prev === viewItem.images.length - 1 ? 0 : prev + 1
+                        )
+                      }
+                    >
+                      ▶
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+            <p><strong>Category:</strong> {viewItem.category}</p>
+            <p><strong>Location:</strong> {viewItem.location}</p>
+            <p><strong>Address:</strong> {viewItem.address}</p>
+            <p><strong>Description:</strong> {viewItem.description}</p>
+            <p className="text-sm text-gray-500 mt-2">
+              Posted on: {new Date(viewItem.createdAt).toLocaleDateString()}
+            </p>
           </div>
         </div>
       )}

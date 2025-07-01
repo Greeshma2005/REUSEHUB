@@ -82,7 +82,7 @@ const Footer = () => {
         </div>
         <div>
           <h4 className="text-green-900 font-semibold mb-3">Contact Us</h4>
-          <p className="text-sm text-green-800">support@reusehub.com</p>
+          <p className="text-sm text-green-800">reusehubapp@gmail.com</p>
           <p className="text-sm text-green-800 mt-1">+91 98765 43210</p>
           <p className="text-sm text-green-800 mt-1">India</p>
         </div>

@@ -1,44 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const dummyItems = [
-  {
-    _id: '1',
-    itemName: 'Winter Jacket',
-    category: 'Clothes',
-    location: 'Delhi',
-    latitude: 28.6139,
-    longitude: 77.209,
-    description: 'Warm and barely used jacket, suitable for cold weather.',
-    donorEmail: 'donor1@example.com',
-    imageUrls: [
-      'https://via.placeholder.com/300x200?text=Winter+Jacket+1',
-      'https://via.placeholder.com/300x200?text=Winter+Jacket+2',
-    ],
-  },
-  {
-    _id: '2',
-    itemName: 'Story Books',
-    category: 'Books',
-    location: 'Mumbai',
-    latitude: 19.076,
-    longitude: 72.8777,
-    description: 'Set of children’s story books.',
-    donorEmail: 'donor2@example.com',
-    imageUrls: [
-      'https://via.placeholder.com/300x200?text=Books+1',
-      'https://via.placeholder.com/300x200?text=Books+2',
-    ],
-  },
-];
-
 const RequestPage = () => {
   const [items, setItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    setItems(dummyItems); 
+    const fetchDonations = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/donations');
+        if (!res.ok) throw new Error('Failed to fetch donations');
+        const data = await res.json();
+
+        const transformed = data.map((donation) => ({
+          _id: donation._id,
+          itemName: donation.itemName,
+          category: donation.category,
+          location: donation.location,
+          description: donation.description,
+          donorEmail: donation?.donor?.email || 'Unknown',
+          latitude: donation.latitude,
+          longitude: donation.longitude,
+          imageUrls: donation.images.map((img) => `http://localhost:5000/uploads/${img}`),
+        }));
+
+        setItems(transformed);
+      } catch (error) {
+        console.error('Error fetching donations:', error);
+      }
+    };
+
+    fetchDonations();
   }, []);
 
   const filteredItems = items.filter((item) =>
@@ -65,10 +58,11 @@ const RequestPage = () => {
           filteredItems.map((item) => (
             <div key={item._id} className="bg-white p-4 rounded-lg shadow">
               <img
-                src={item.imageUrls?.[0]}
+                src={item.imageUrls?.[0] || 'https://via.placeholder.com/300x200?text=No+Image'}
                 alt={item.itemName}
-                className="w-full h-40 object-cover rounded"
+                className="w-full h-64 object-contain rounded bg-gray-100"
               />
+
               <h2 className="mt-3 text-xl font-semibold text-green-800">{item.itemName}</h2>
               <p className="text-sm text-gray-600">{item.category}</p>
               <p className="text-sm text-gray-500">{item.location}</p>

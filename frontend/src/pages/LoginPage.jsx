@@ -53,7 +53,6 @@ const handleLogin = async (e) => {
 
     const data = await res.json();
 
-    // ✅ Based on status code
     if (res.status === 404) {
       alert('User not found. Please sign up first.');
     } else if (res.status === 401) {
@@ -61,7 +60,8 @@ const handleLogin = async (e) => {
     } else if (!res.ok) {
       alert(data.message || 'Login failed');
     } else {
-      localStorage.setItem('reusehubLoggedInUser', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token); // ✅ store token
+      localStorage.setItem('reusehubLoggedInUser', JSON.stringify(data.user)); // optional
       setIsLoggedIn(true);
       alert('Login successful!');
       navigate('/');

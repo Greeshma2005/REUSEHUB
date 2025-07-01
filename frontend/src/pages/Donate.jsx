@@ -1,8 +1,16 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+  import { useAuth } from '../context/AuthContext';
 const DonatePage = () => {
+  const { isLoggedIn } = useAuth(); // ✅ get from context
   const navigate = useNavigate();
+  useEffect(() => {
+    if (!isLoggedIn) {
+      alert('Please login to donate.');
+      navigate('/login');
+    }
+  }, [isLoggedIn, navigate]);
 
   const [formData, setFormData] = useState({
     itemName: '',
@@ -106,31 +114,36 @@ const DonatePage = () => {
     data.append('longitude', formData.longitude);
     formData.images.forEach((img) => data.append('images', img));
 
-    fetch('http://localhost:5000/api/donations', {
-      method: 'POST',
-      body: data,
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to save');
-        return res.json();
-      })
-      .then(() => {
-        setFormData({
-          itemName: '',
-          category: '',
-          customCategory: '',
-          location: '',
-          address: '',
-          description: '',
-          images: [],
-          latitude: '',
-          longitude: '',
-        });
-        setPreviewUrls([]);
-        setShowFullImage({ visible: false, index: 0 });
-        navigate('/donation-success');
-      })
-      .catch(() => alert('Failed to save data. Please try again.'));
+    const token = localStorage.getItem('token');
+
+if (!token) {
+  alert('No token found. Please log in again.');
+  return;
+}
+
+fetch('http://localhost:5000/api/donations', {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+  body: data,
+})
+  .then(async (res) => {
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || 'Unknown error');
+    }
+    return res.json();
+  })
+  .then(() => {
+    alert('Donation submitted successfully!');
+    navigate('/donation-success');
+  })
+  .catch((err) => {
+    console.error('❌ Donation save error:', err.message);
+    alert(`Failed to save data: ${err.message}`);
+  });
+
   };
 
   return (
