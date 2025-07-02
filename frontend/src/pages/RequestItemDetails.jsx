@@ -21,15 +21,44 @@ const RequestItemDetails = () => {
   const [message, setMessage] = useState('');
   const [showFullImage, setShowFullImage] = useState({ visible: false, url: '' });
 
-  const handleSendMessage = () => {
-    if (!message.trim()) {
-      alert('Please enter a message.');
-      return;
-    }
+  const handleSendMessage = async () => {
+  if (!message.trim()) {
+    alert('Please enter a message.');
+    return;
+  }
 
-    alert(`Message sent to ${item.donorEmail}\n\nItem: ${item.itemName}\nMessage: ${message}`);
+  const user = JSON.parse(localStorage.getItem('reusehubLoggedInUser'));
+  const requesterEmail = user?.email;
+
+  if (!requesterEmail) {
+    alert('You must be logged in to send a message.');
+    navigate('/login');
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:5000/api/messages/send', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    donorEmail: item.donorEmail,
+    requesterEmail,
+    itemName: item.itemName,
+    message,
+  }),
+});
+
+
+    if (!res.ok) throw new Error('Failed to send message');
+    alert('Message sent to donor successfully! He will get back to you soon.');
     setMessage('');
-  };
+  } catch (err) {
+    alert('Error sending message. Please try again.');
+  }
+};
+
 
   if (!item) {
     return <div className="pt-24 text-center text-red-500">No item found.</div>;

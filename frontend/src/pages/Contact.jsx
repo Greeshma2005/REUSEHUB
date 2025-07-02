@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Contact = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,13 +16,38 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
 
-    setFormData({ name: '', email: '', message: '' });
+    const user = localStorage.getItem('reusehubLoggedInUser');
+    if (!user) {
+      alert('Please log in to send a message.');
+      navigate('/login');
+      return;
+    }
 
-    alert("Message sent! We'll get back to you soon.");
+    const parsed = JSON.parse(user);
+
+    const messageData = {
+      name: parsed.name,
+      email: parsed.email,
+      message: formData.message,
+    };
+
+    try {
+      const res = await fetch('http://localhost:5000/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(messageData),
+      });
+
+      if (!res.ok) throw new Error('Failed to send message');
+      alert("Message sent! We'll get back to you soon.");
+      setFormData({ name: '', email: '', message: '' });
+    } catch (err) {
+      alert("Failed to send message. Please try again.");
+      console.error(err);
+    }
   };
 
   return (

@@ -4,6 +4,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const donationRoutes = require('./routes/donationRoutes');
+const contactRoutes = require('./routes/contactRoutes'); 
+const requestRoutes = require('./routes/requestRoutes');
 dotenv.config();
 
 const app = express();
@@ -20,7 +22,10 @@ app.get('/', (req, res) => {
 
 app.use('/api', authRoutes);
 app.use('/api/donations', donationRoutes);
-app.use('/uploads', express.static('uploads')); 
+app.use('/uploads', express.static('uploads'));
+app.use('/api/contact', contactRoutes);
+app.use('/api/requests', requestRoutes); 
+app.use('/api/messages', require('./routes/messageRoutes')); 
 mongoose.connect(process.env.MONGO_URI, {
 })
 .then(() => {

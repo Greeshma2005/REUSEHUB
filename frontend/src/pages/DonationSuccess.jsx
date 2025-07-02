@@ -15,9 +15,9 @@ const DonationSuccess = () => {
         </p>
         <button
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/donate')}
         >
-          Share Your Donation
+          Make Another Donation
         </button>
       </div>
 

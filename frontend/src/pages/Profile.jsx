@@ -11,44 +11,56 @@ const Profile = () => {
   const [imageIndex, setImageIndex] = useState(0);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = '/login';
-        return;
-      }
+  const fetchUserData = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
 
-      try {
-        const res = await fetch('http://localhost:5000/api/donations/my-donations', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
 
-        if (!res.ok) throw new Error('Failed to fetch user donations');
-        const donations = await res.json();
-        const user = JSON.parse(localStorage.getItem('reusehubLoggedInUser'));
+      // Fetch donations
+      const donationRes = await fetch('http://localhost:5000/api/donations/my-donations', {
+        headers,
+      });
+      if (!donationRes.ok) throw new Error('Failed to fetch donations');
+      const donations = await donationRes.json();
 
-        setUserData({
-          name: user.name,
-          email: user.email,
-          phone: user.phone || '',
-          donations,
-          requests: [],
-        });
+      // Fetch requests
+      const requestRes = await fetch('http://localhost:5000/api/requests/my-requests', {
+  headers,
+});
 
-        setFormData({
-          name: user.name,
-          email: user.email,
-          phone: user.phone || '',
-        });
-      } catch (err) {
-        alert('Error fetching profile data');
-      }
-    };
+      if (!requestRes.ok) throw new Error('Failed to fetch requests');
+      const requests = await requestRes.json();
 
-    fetchUserData();
-  }, []);
+      // Get user from local storage
+      const user = JSON.parse(localStorage.getItem('reusehubLoggedInUser')) || {};
+
+      setUserData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        donations,
+        requests,
+      });
+
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      });
+    } catch (err) {
+      console.error('Error fetching profile data:', err);
+      alert(`Error fetching profile data: ${err.message}`);
+    }
+  };
+
+  fetchUserData();
+}, []);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,21 +70,40 @@ const Profile = () => {
   const isValidEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  const handleSave = () => {
-    if (!isValidEmail(formData.email)) {
-      alert('Please enter a valid email address.');
-      return;
-    }
+  const handleSave = async () => {
+  if (!isValidEmail(formData.email)) {
+    alert('Please enter a valid email address.');
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+
+  try {
+    const res = await fetch('http://localhost:5000/api/update-profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (!res.ok) throw new Error('Failed to update profile');
+    const data = await res.json();
 
     setUserData((prev) => ({
       ...prev,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
+      ...data.user,
     }));
 
+    localStorage.setItem('reusehubLoggedInUser', JSON.stringify(data.user));
     setEditMode(false);
-  };
+    alert('Profile updated successfully!');
+  } catch (err) {
+    alert('Error updating profile');
+  }
+};
+
 
   const handleLogoutConfirm = () => {
     localStorage.removeItem('token');
@@ -107,45 +138,51 @@ const Profile = () => {
     }
   };
 
-  const renderItems = (items) => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-      {items.map((item) => (
-        <div
-          key={item._id}
-          className="bg-white border border-green-100 rounded-xl shadow-sm p-4 flex flex-col gap-3 hover:shadow-md transition"
-        >
-          <img
-            src={
-              item.images && item.images.length > 0
-                ? `http://localhost:5000/uploads/${item.images[0]}`
-                : 'https://via.placeholder.com/60?text=Item'
-            }
-            alt={item.itemName}
-            className="w-full h-40 object-cover rounded"
-          />
-          <div>
-            <p className="font-semibold text-green-900">{item.itemName}</p>
-            <p className="text-sm text-gray-500">{item.category}</p>
-            <p className="text-xs text-gray-400">Posted on: {new Date(item.createdAt).toLocaleDateString()}</p>
-          </div>
-          <div className="flex justify-between mt-2">
-            <button
-              className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs hover:bg-green-200"
-              onClick={() => handleViewItem(item)}
-            >
-              View
-            </button>
+  const renderItems = (items, showDelete = true) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+    {items.map((item) => (
+      <div
+        key={item._id}
+        className="bg-white border border-green-100 rounded-xl shadow-sm p-4 flex flex-col gap-3 hover:shadow-md transition"
+      >
+        <img
+          src={
+            item.images && item.images.length > 0
+              ? `http://localhost:5000/uploads/${item.images[0]}`
+              : 'https://via.placeholder.com/60?text=Item'
+          }
+          alt={item.itemName}
+          title={item.itemName}
+          className="w-full aspect-video object-cover rounded"
+        />
+        <div>
+          <p className="font-semibold text-green-900">{item.itemName}</p>
+          <p className="text-sm text-gray-500">{item.category}</p>
+          <p className="text-xs text-gray-400">Posted on: {new Date(item.createdAt).toLocaleDateString()}</p>
+        </div>
+        <div className="flex justify-between mt-2">
+          <button
+            className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs hover:bg-green-200"
+            onClick={() => handleViewItem(item)}
+          >
+            View
+          </button>
+
+          {/* ✅ Only show delete button if showDelete is true */}
+          {showDelete && (
             <button
               className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs hover:bg-red-200"
               onClick={() => handleDeleteItem(item._id)}
             >
               Delete
             </button>
-          </div>
+          )}
         </div>
-      ))}
-    </div>
-  );
+      </div>
+    ))}
+  </div>
+);
+
 
   if (!userData) return <div className="text-center py-20">Loading...</div>;
 
@@ -225,20 +262,21 @@ const Profile = () => {
 
           <div>
             {activeTab === 'donations' && (
-              userData.donations.length > 0
-                ? renderItems(userData.donations)
-                : <p className="text-center text-gray-500">No donations yet.</p>
-            )}
-            {activeTab === 'requests' && (
-              userData.requests.length > 0
-                ? renderItems(userData.requests)
-                : <p className="text-center text-gray-500">No requests yet.</p>
-            )}
+  userData.donations.length > 0
+    ? renderItems(userData.donations, true) // 👈 allow delete
+    : <p className="text-center text-gray-500">No donations yet.</p>
+)}
+{activeTab === 'requests' && (
+  userData.requests.length > 0
+    ? renderItems(userData.requests, false) // 👈 no delete
+    : <p className="text-center text-gray-500">No requests yet.</p>
+)}
+
           </div>
         </div>
       </div>
 
-      {/* Logout Popup */}
+      {/* Logout Confirmation Popup */}
       {showLogoutPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
@@ -261,7 +299,7 @@ const Profile = () => {
         </div>
       )}
 
-      {/* View Popup with Image Slider */}
+      {/* View Item Popup with Image Slider */}
       {viewItem && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center">
           <div className="bg-white rounded-xl p-6 max-w-lg w-full relative">
@@ -279,7 +317,6 @@ const Profile = () => {
                   alt={`Image ${imageIndex + 1}`}
                   className="max-h-[75vh] w-auto max-w-full mx-auto object-contain rounded"
                 />
-
                 {viewItem.images.length > 1 && (
                   <>
                     <button

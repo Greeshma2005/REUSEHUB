@@ -12,6 +12,13 @@ const donationSchema = new mongoose.Schema({
   images: [String],
   donor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now },
+  requests: [
+    {
+      email: String,
+      message: String,
+      date: { type: Date, default: Date.now },
+    },
+  ],
 });
 
 module.exports = mongoose.model('Donation', donationSchema);
