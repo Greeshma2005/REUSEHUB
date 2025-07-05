@@ -15,8 +15,7 @@ router.post('/forgot-password', async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '15m',
     });
-
-    const resetLink = `http://localhost:3000/reset-password/${token}`;
+const resetLink = `https://reusehub-six.vercel.app/reset-password/${token}`;
 
     await sendEmail({
         to: email,
