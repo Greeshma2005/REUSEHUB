@@ -9,7 +9,7 @@ const RequestPage = () => {
   useEffect(() => {
     const fetchDonations = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/donations');
+        const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/donations`);
         if (!res.ok) throw new Error('Failed to fetch donations');
         const data = await res.json();
 
@@ -22,7 +22,7 @@ const RequestPage = () => {
           donorEmail: donation?.donor?.email || 'Unknown',
           latitude: donation.latitude,
           longitude: donation.longitude,
-          imageUrls: donation.images.map((img) => `http://localhost:5000/uploads/${img}`),
+          imageUrls: donation.images.map((img) => `${process.env.REACT_APP_BACKEND_URL}/uploads/${img}`),
         }));
 
         setItems(transformed);

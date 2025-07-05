@@ -121,7 +121,7 @@ if (!token) {
   return;
 }
 
-fetch('http://localhost:5000/api/donations', {
+fetch(`${process.env.REACT_APP_BACKEND_URL}/api/donations`, {
   method: 'POST',
   headers: {
     Authorization: `Bearer ${token}`,

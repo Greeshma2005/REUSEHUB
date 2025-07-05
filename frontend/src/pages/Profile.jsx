@@ -22,16 +22,16 @@ const Profile = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       // Fetch donations
-      const donationRes = await fetch('http://localhost:5000/api/donations/my-donations', {
+      const donationRes = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/donations/my-donations`, {
         headers,
       });
       if (!donationRes.ok) throw new Error('Failed to fetch donations');
       const donations = await donationRes.json();
 
       // Fetch requests
-      const requestRes = await fetch('http://localhost:5000/api/requests/my-requests', {
-  headers,
-});
+      const requestRes = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/requests/my-requests`, {
+        headers,
+      });
 
       if (!requestRes.ok) throw new Error('Failed to fetch requests');
       const requests = await requestRes.json();
@@ -79,7 +79,7 @@ const Profile = () => {
   const token = localStorage.getItem('token');
 
   try {
-    const res = await fetch('http://localhost:5000/api/update-profile', {
+    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/update-profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ const Profile = () => {
 
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:5000/api/donations/${donationId}`, {
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/donations/${donationId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -148,7 +148,7 @@ const Profile = () => {
         <img
           src={
             item.images && item.images.length > 0
-              ? `http://localhost:5000/uploads/${item.images[0]}`
+              ? `${process.env.REACT_APP_BACKEND_URL}/uploads/${item.images[0]}`
               : 'https://via.placeholder.com/60?text=Item'
           }
           alt={item.itemName}
@@ -313,7 +313,7 @@ const Profile = () => {
             {viewItem.images?.length > 0 && (
               <div className="relative mb-4">
                 <img
-                  src={`http://localhost:5000/uploads/${viewItem.images[imageIndex]}`}
+                  src={`${process.env.REACT_APP_BACKEND_URL}/uploads/${viewItem.images[imageIndex]}`}
                   alt={`Image ${imageIndex + 1}`}
                   className="max-h-[75vh] w-auto max-w-full mx-auto object-contain rounded"
                 />

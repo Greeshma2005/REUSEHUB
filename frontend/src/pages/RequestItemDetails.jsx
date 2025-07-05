@@ -37,12 +37,12 @@ const RequestItemDetails = () => {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/messages/send', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
+    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/messages/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
     donorEmail: item.donorEmail,
     requesterEmail,
     itemName: item.itemName,
