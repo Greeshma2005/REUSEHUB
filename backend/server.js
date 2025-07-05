@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -24,6 +26,10 @@ app.get('/', (req, res) => {
 
 app.use('/api', authRoutes);
 app.use('/api/donations', donationRoutes);
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 app.use('/uploads', express.static('uploads'));
 app.use('/api/contact', contactRoutes);
 app.use('/api/requests', requestRoutes); 
