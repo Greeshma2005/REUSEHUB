@@ -60,8 +60,8 @@ const handleLogin = async (e) => {
     } else if (!res.ok) {
       alert(data.message || 'Login failed');
     } else {
-      localStorage.setItem('token', data.token); // ✅ store token
-      localStorage.setItem('reusehubLoggedInUser', JSON.stringify(data.user)); // optional
+      localStorage.setItem('token', data.token); 
+      localStorage.setItem('reusehubLoggedInUser', JSON.stringify(data.user)); 
       setIsLoggedIn(true);
       alert('Login successful!');
       navigate('/');
